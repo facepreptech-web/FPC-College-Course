@@ -1,8 +1,16 @@
-require('dotenv').config();
-const express = require('express');
-const mysql = require('mysql2/promise');
-const cors = require('cors');
-const path = require('path');
+import dotenv from 'dotenv';
+import express from 'express';
+import mysql from 'mysql2/promise';
+import cors from 'cors';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+dotenv.config();
+
+// ES module equivalent of __dirname
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -265,5 +273,5 @@ app.listen(PORT, () => {
   console.log(`📁 Serving static files from: ${path.join(__dirname, 'dist')}`);
 });
 
-module.exports = app;
+export default app;
 
