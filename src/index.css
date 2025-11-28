@@ -1,0 +1,143 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    /* FACEPrep Campus Brand Colors */
+    --background: 0 0% 100%;
+    --foreground: 0 0% 0%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 0%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 0%;
+
+    /* Brand Primary - Magenta */
+    --primary: 297 100% 41%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary - Deep Pink */
+    --secondary: 326 70% 56%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 40%;
+
+    /* Accent - Warm Orange */
+    --accent: 30 78% 67%;
+    --accent-foreground: 0 0% 0%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 297 100% 41%;
+
+    --radius: 1rem;
+
+    /* Additional Brand Colors */
+    --peach: 23 78% 67%;
+    --soft-yellow: 32 81% 66%;
+    
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(297, 100%, 41%), hsl(326, 70%, 56%));
+    --gradient-secondary: linear-gradient(135deg, hsl(326, 70%, 56%), hsl(30, 78%, 67%));
+    --gradient-accent: linear-gradient(135deg, hsl(30, 78%, 67%), hsl(32, 81%, 66%));
+    --gradient-hero: linear-gradient(135deg, hsl(297, 100%, 41%) 0%, hsl(326, 70%, 56%) 50%, hsl(30, 78%, 67%) 100%);
+    
+    /* Shadows with brand colors */
+    --shadow-magenta: 0 10px 40px -10px hsl(297 100% 41% / 0.3);
+    --shadow-pink: 0 10px 40px -10px hsl(326 70% 56% / 0.3);
+    --shadow-orange: 0 10px 40px -10px hsl(30 78% 67% / 0.3);
+    
+    /* Animations */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .dark {
+    --background: 0 0% 5%;
+    --foreground: 0 0% 100%;
+
+    --card: 0 0% 8%;
+    --card-foreground: 0 0% 100%;
+
+    --popover: 0 0% 8%;
+    --popover-foreground: 0 0% 100%;
+
+    --primary: 297 100% 51%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 326 70% 66%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 60%;
+
+    --accent: 30 78% 67%;
+    --accent-foreground: 0 0% 0%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 297 100% 51%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .gradient-primary {
+    background: var(--gradient-primary);
+  }
+  
+  .gradient-secondary {
+    background: var(--gradient-secondary);
+  }
+  
+  .gradient-accent {
+    background: var(--gradient-accent);
+  }
+  
+  .gradient-hero {
+    background: var(--gradient-hero);
+  }
+  
+  .shadow-magenta {
+    box-shadow: var(--shadow-magenta);
+  }
+  
+  .shadow-pink {
+    box-shadow: var(--shadow-pink);
+  }
+  
+  .shadow-orange {
+    box-shadow: var(--shadow-orange);
+  }
+  
+  .hover-glow {
+    transition: var(--transition-smooth);
+  }
+  
+  .hover-glow:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 50px -10px hsl(297 100% 41% / 0.4);
+  }
+}
