@@ -1,16 +1,29 @@
 import { useEffect } from "react";
-import { useNavigate, Outlet } from "react-router-dom";
+import { useNavigate, Outlet, useLocation } from "react-router-dom";
 import { AdminSidebar } from "./AdminSidebar";
 
 const AdminLayout = () => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     const isAuthenticated = localStorage.getItem("adminAuth");
     if (!isAuthenticated) {
-      navigate("/admin/login");
+      navigate("/admin/login", { replace: true });
+      return;
     }
-  }, [navigate]);
+    
+    // If accessing /admin directly, redirect to dashboard
+    if (location.pathname === "/admin") {
+      navigate("/admin/dashboard", { replace: true });
+    }
+  }, [navigate, location.pathname]);
+
+  // Don't render layout if not authenticated
+  const isAuthenticated = localStorage.getItem("adminAuth");
+  if (!isAuthenticated) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-background flex">
