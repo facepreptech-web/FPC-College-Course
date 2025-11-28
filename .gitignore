@@ -20,6 +20,7 @@ dist-ssr
 .env.local
 .env.production
 .env.*
+!.env.example
 
 # Backend folder - excluded from git
 backend/

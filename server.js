@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const mysql = require('mysql2/promise');
 const cors = require('cors');
+const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -10,12 +11,15 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
+// Serve static files from dist folder (built React app)
+app.use(express.static(path.join(__dirname, 'dist')));
+
 // Database configuration - Using environment variables
 const dbConfig = {
   host: process.env.DB_HOST || 'localhost',
   database: process.env.DB_NAME || 'u461595815_fpc',
   user: process.env.DB_USER || 'u461595815_fpcadmin',
-  password: process.env.DB_PASS || '',
+  password: process.env.DB_PASS || 'f7McCB4#6IE!',
   port: process.env.DB_PORT || 3306,
   waitForConnections: true,
   connectionLimit: 10,
@@ -244,10 +248,21 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', message: 'API is running' });
 });
 
+// SPA Routing - Serve index.html for all non-API routes
+// This must be AFTER all API routes
+// Express matches routes in order, so API routes above are handled first
+app.get('*', (req, res) => {
+  // Serve index.html for all frontend routes (SPA routing)
+  // API routes are already handled by the routes defined above
+  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+});
+
 // Start server
 app.listen(PORT, () => {
   console.log(`🚀 Server is running on port ${PORT}`);
   console.log(`📡 API available at http://localhost:${PORT}`);
+  console.log(`🌐 Frontend available at http://localhost:${PORT}`);
+  console.log(`📁 Serving static files from: ${path.join(__dirname, 'dist')}`);
 });
 
 module.exports = app;
