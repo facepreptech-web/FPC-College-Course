@@ -1,4 +1,5 @@
-import { Mail, Phone, MapPin } from "lucide-react";
+import { Mail, Phone, MapPin, HelpCircle } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export const Footer = () => {
   return (
@@ -20,17 +21,37 @@ export const Footer = () => {
             <h4 className="text-base sm:text-lg font-semibold text-foreground">Quick Links</h4>
             <ul className="space-y-2">
               <li>
-                <a href="/colleges" className="text-xs sm:text-sm text-muted-foreground hover:text-primary transition-colors">
+                <Link to="/colleges" className="text-xs sm:text-sm text-muted-foreground hover:text-primary transition-colors">
                   Browse Colleges
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-xs sm:text-sm text-muted-foreground hover:text-primary transition-colors">
+                <a
+                  href="#contact"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    const contactElement = document.getElementById("contact");
+                    if (contactElement) {
+                      contactElement.scrollIntoView({ behavior: "smooth" });
+                    }
+                  }}
+                  className="text-xs sm:text-sm text-muted-foreground hover:text-primary transition-colors"
+                >
                   About Us
                 </a>
               </li>
               <li>
-                <a href="#" className="text-xs sm:text-sm text-muted-foreground hover:text-primary transition-colors">
+                <a
+                  href="#contact"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    const contactElement = document.getElementById("contact");
+                    if (contactElement) {
+                      contactElement.scrollIntoView({ behavior: "smooth" });
+                    }
+                  }}
+                  className="text-xs sm:text-sm text-muted-foreground hover:text-primary transition-colors"
+                >
                   Careers
                 </a>
               </li>
@@ -43,15 +64,19 @@ export const Footer = () => {
             <ul className="space-y-2.5 sm:space-y-3">
               <li className="flex items-start gap-2.5 sm:gap-3 text-xs sm:text-sm text-muted-foreground">
                 <Mail className="w-3.5 h-3.5 sm:w-4 sm:h-4 mt-0.5 text-primary flex-shrink-0" />
-                <span className="break-all">contact@faceprepcampus.com</span>
+                <a href="mailto:connect@faceprep.in" className="break-all hover:text-primary transition-colors">
+                  connect@faceprep.in
+                </a>
               </li>
               <li className="flex items-start gap-2.5 sm:gap-3 text-xs sm:text-sm text-muted-foreground">
-                <Phone className="w-3.5 h-3.5 sm:w-4 sm:h-4 mt-0.5 text-primary flex-shrink-0" />
-                <span>+91 1234567890</span>
+                <HelpCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 mt-0.5 text-primary flex-shrink-0" />
+                <a href="tel:+917904318695" className="hover:text-primary transition-colors">
+                  +91 79043 18695
+                </a>
               </li>
               <li className="flex items-start gap-2.5 sm:gap-3 text-xs sm:text-sm text-muted-foreground">
                 <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 mt-0.5 text-primary flex-shrink-0" />
-                <span>Bangalore, India</span>
+                <span>No.12, Lakshmi Nagar, Thottipalayam Pirivu, Avinashi Road, Coimbatore-641014.</span>
               </li>
             </ul>
           </div>

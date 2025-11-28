@@ -47,9 +47,9 @@ const Colleges = () => {
   const filteredColleges = useMemo(
     () =>
       colleges.filter(
-        (college) =>
-          college.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          college.location.toLowerCase().includes(searchQuery.toLowerCase())
+    (college) =>
+      college.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      college.location.toLowerCase().includes(searchQuery.toLowerCase())
       ),
     [colleges, searchQuery]
   );
@@ -71,7 +71,7 @@ const Colleges = () => {
     setFormData({ name: "", location: "" });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name.trim() || !formData.location.trim()) {
       toast({
@@ -82,12 +82,35 @@ const Colleges = () => {
       return;
     }
 
-    if (editingCollege) {
-      // Check if name changed and conflicts with existing
-      if (editingCollege.name !== formData.name.trim()) {
-        const nameExists = colleges.some(
-          (c) => c.name === formData.name.trim() && c.name !== editingCollege.name
-        );
+    try {
+      if (editingCollege) {
+        // Check if name changed and conflicts with existing
+        if (editingCollege.name !== formData.name.trim()) {
+          const nameExists = colleges.some(
+            (c) => c.name === formData.name.trim() && c.name !== editingCollege.name
+          );
+          if (nameExists) {
+            toast({
+              title: "Error",
+              description: "A college with this name already exists",
+              variant: "destructive",
+            });
+            return;
+          }
+        }
+
+        await updateCollege(editingCollege.name, {
+          ...editingCollege,
+          name: formData.name.trim(),
+          location: formData.location.trim(),
+        });
+        toast({
+          title: "Success",
+          description: "College updated successfully",
+        });
+      } else {
+        // Check if college already exists
+        const nameExists = colleges.some((c) => c.name === formData.name.trim());
         if (nameExists) {
           toast({
             title: "Error",
@@ -96,40 +119,25 @@ const Colleges = () => {
           });
           return;
         }
-      }
 
-      updateCollege(editingCollege.name, {
-        ...editingCollege,
-        name: formData.name.trim(),
-        location: formData.location.trim(),
-      });
-      toast({
-        title: "Success",
-        description: "College updated successfully",
-      });
-    } else {
-      // Check if college already exists
-      const nameExists = colleges.some((c) => c.name === formData.name.trim());
-      if (nameExists) {
-        toast({
-          title: "Error",
-          description: "A college with this name already exists",
-          variant: "destructive",
+        await addCollege({
+          name: formData.name.trim(),
+          location: formData.location.trim(),
+          courses: [],
         });
-        return;
+        toast({
+          title: "Success",
+          description: "College added successfully",
+        });
       }
-
-      addCollege({
-        name: formData.name.trim(),
-        location: formData.location.trim(),
-        courses: [],
-      });
+      handleCloseDialog();
+    } catch (error) {
       toast({
-        title: "Success",
-        description: "College added successfully",
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to save college",
+        variant: "destructive",
       });
     }
-    handleCloseDialog();
   };
 
   const handleDeleteClick = (collegeName: string) => {
@@ -137,15 +145,23 @@ const Colleges = () => {
     setIsDeleteDialogOpen(true);
   };
 
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = async () => {
     if (deletingCollege) {
-      deleteCollege(deletingCollege);
-      toast({
-        title: "Success",
-        description: "College deleted successfully",
-      });
-      setIsDeleteDialogOpen(false);
-      setDeletingCollege(null);
+      try {
+        await deleteCollege(deletingCollege);
+        toast({
+          title: "Success",
+          description: "College deleted successfully",
+        });
+        setIsDeleteDialogOpen(false);
+        setDeletingCollege(null);
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: error instanceof Error ? error.message : "Failed to delete college",
+          variant: "destructive",
+        });
+      }
     }
   };
 
@@ -164,9 +180,9 @@ const Colleges = () => {
           onClick={() => handleOpenDialog()}
           className="gradient-primary text-white hover:opacity-90"
         >
-          <Plus className="w-4 h-4 mr-2" />
-          Add College
-        </Button>
+              <Plus className="w-4 h-4 mr-2" />
+              Add College
+            </Button>
       </div>
 
       <Card className="border-2">

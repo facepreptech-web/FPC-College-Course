@@ -1,4 +1,5 @@
 import { Sparkles } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export const Hero = () => {
   return (
@@ -31,16 +32,23 @@ export const Hero = () => {
           </p>
           
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-            <a
-              href="/colleges"
+            <Link
+              to="/colleges"
               className="group relative inline-flex items-center justify-center px-8 py-4 text-base font-semibold text-white bg-gradient-to-r from-primary via-secondary to-accent rounded-full overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
             >
               <span className="relative z-10">Get Started</span>
               <div className="absolute inset-0 bg-gradient-to-r from-accent via-secondary to-primary opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-            </a>
+            </Link>
             
             <a
               href="#contact"
+              onClick={(e) => {
+                e.preventDefault();
+                const contactElement = document.getElementById("contact");
+                if (contactElement) {
+                  contactElement.scrollIntoView({ behavior: "smooth" });
+                }
+              }}
               className="inline-flex items-center justify-center px-8 py-4 text-base font-semibold text-foreground bg-card rounded-full border-2 border-border hover:border-primary transition-all duration-300 hover:scale-105"
             >
               Learn More

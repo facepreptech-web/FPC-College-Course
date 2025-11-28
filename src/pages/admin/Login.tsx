@@ -72,7 +72,7 @@ const Login = () => {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="admin@faceprep.com"
+                  placeholder="Enter your email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="pl-10"
@@ -105,12 +105,6 @@ const Login = () => {
               {isLoading ? "Logging in..." : "Login"}
             </Button>
           </form>
-          
-          <div className="mt-4 text-center text-xs text-muted-foreground">
-            <p>Demo credentials:</p>
-            <p>Email: admin@faceprep.com</p>
-            <p>Password: admin123</p>
-          </div>
         </CardContent>
       </Card>
     </div>

@@ -1,183 +1,229 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { College, Course, SemesterTopic } from "@/data/collegesData";
-import { collegesData as initialCollegesData } from "@/data/collegesData";
+import { collegesAPI, coursesAPI, semestersAPI } from "@/services/api";
 
 interface CollegesContextType {
   colleges: College[];
-  addCollege: (college: College) => void;
-  updateCollege: (collegeName: string, updatedCollege: College) => void;
-  deleteCollege: (collegeName: string) => void;
-  addCourse: (collegeName: string, course: Course) => void;
-  updateCourse: (collegeName: string, courseName: string, updatedCourse: Course) => void;
-  deleteCourse: (collegeName: string, courseName: string) => void;
-  addSemester: (collegeName: string, courseName: string, semester: SemesterTopic) => void;
-  updateSemester: (collegeName: string, courseName: string, semesterNumber: number, updatedSemester: SemesterTopic) => void;
-  deleteSemester: (collegeName: string, courseName: string, semesterNumber: number) => void;
-  resetData: () => void;
+  isLoading: boolean;
+  addCollege: (college: College) => Promise<void>;
+  updateCollege: (collegeName: string, updatedCollege: College) => Promise<void>;
+  deleteCollege: (collegeName: string) => Promise<void>;
+  addCourse: (collegeName: string, course: Course) => Promise<void>;
+  updateCourse: (collegeName: string, courseName: string, updatedCourse: Course) => Promise<void>;
+  deleteCourse: (collegeName: string, courseName: string) => Promise<void>;
+  addSemester: (collegeName: string, courseName: string, semester: SemesterTopic) => Promise<void>;
+  updateSemester: (collegeName: string, courseName: string, semesterNumber: number, updatedSemester: SemesterTopic) => Promise<void>;
+  deleteSemester: (collegeName: string, courseName: string, semesterNumber: number) => Promise<void>;
+  resetData: () => Promise<void>;
+  refreshData: () => Promise<void>;
 }
 
 const CollegesContext = createContext<CollegesContextType | undefined>(undefined);
 
-const STORAGE_KEY = "faceprep_colleges_data";
+// All data comes from backend API - no local storage or predefined data
+
+// Helper to convert API format to app format
+const convertApiToAppFormat = (apiColleges: any[]): College[] => {
+  return apiColleges.map((apiCollege: any) => ({
+    name: apiCollege.name,
+    location: apiCollege.location,
+    courses: (apiCollege.courses || []).map((apiCourse: any) => ({
+      name: apiCourse.name,
+      semesters: (apiCourse.semesters || []).map((apiSem: any) => ({
+        semester: apiSem.semester,
+        topics: apiSem.topics,
+      })),
+    })),
+  }));
+};
+
+// Helper to find college by name and get its ID
+const findCollegeId = (colleges: any[], name: string): number | null => {
+  const college = colleges.find((c: any) => c.name === name);
+  return college?.id || null;
+};
+
+// Helper to find course by name and get its ID
+const findCourseId = (college: any, courseName: string): number | null => {
+  const course = college.courses?.find((c: any) => c.name === courseName);
+  return course?.id || null;
+};
 
 export const CollegesProvider = ({ children }: { children: ReactNode }) => {
-  // Initialize with data immediately to avoid empty state
-  const getInitialData = (): College[] => {
+  const [colleges, setColleges] = useState<College[]>([]);
+  const [apiColleges, setApiColleges] = useState<any[]>([]); // Store API format for IDs
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Load data from backend API only
+  const loadData = async () => {
+    setIsLoading(true);
     try {
-      const savedData = localStorage.getItem(STORAGE_KEY);
-      if (savedData) {
-        const parsed = JSON.parse(savedData);
-        // Validate that parsed data is an array with at least some structure
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed;
-        }
-      }
+      const data = await collegesAPI.getAllColleges();
+      setApiColleges(data);
+      setColleges(convertApiToAppFormat(data));
     } catch (error) {
-      console.error("Error loading saved data:", error);
+      console.error("Error loading data from API:", error);
+      // Set empty array if API fails - no fallback data
+      setColleges([]);
+      setApiColleges([]);
+    } finally {
+      setIsLoading(false);
     }
-    return initialCollegesData;
   };
 
-  const [colleges, setColleges] = useState<College[]>(getInitialData);
-  const [isInitialized, setIsInitialized] = useState(false);
-
-  // Mark as initialized after first render
   useEffect(() => {
-    setIsInitialized(true);
+    loadData();
   }, []);
 
-  // Save to localStorage whenever colleges change (but not on initial load)
-  useEffect(() => {
-    if (isInitialized && colleges.length > 0) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(colleges));
+  const refreshData = async () => {
+    await loadData();
+  };
+
+  const addCollege = async (college: College) => {
+    try {
+      await collegesAPI.createCollege({ name: college.name, location: college.location });
+      await refreshData();
+    } catch (error) {
+      console.error("Error adding college:", error);
+      throw error;
     }
-  }, [colleges, isInitialized]);
-
-  const addCollege = (college: College) => {
-    setColleges((prev) => [...prev, college]);
   };
 
-  const updateCollege = (collegeName: string, updatedCollege: College) => {
-    setColleges((prev) =>
-      prev.map((college) => (college.name === collegeName ? updatedCollege : college))
-    );
+  const updateCollege = async (collegeName: string, updatedCollege: College) => {
+    try {
+      const collegeId = findCollegeId(apiColleges, collegeName);
+      if (collegeId) {
+        await collegesAPI.updateCollege(collegeId, {
+          name: updatedCollege.name,
+          location: updatedCollege.location,
+        });
+        await refreshData();
+      }
+    } catch (error) {
+      console.error("Error updating college:", error);
+      throw error;
+    }
   };
 
-  const deleteCollege = (collegeName: string) => {
-    setColleges((prev) => prev.filter((college) => college.name !== collegeName));
+  const deleteCollege = async (collegeName: string) => {
+    try {
+      const collegeId = findCollegeId(apiColleges, collegeName);
+      if (collegeId) {
+        await collegesAPI.deleteCollege(collegeId);
+        await refreshData();
+      }
+    } catch (error) {
+      console.error("Error deleting college:", error);
+      throw error;
+    }
   };
 
-  const addCourse = (collegeName: string, course: Course) => {
-    setColleges((prev) =>
-      prev.map((college) =>
-        college.name === collegeName
-          ? { ...college, courses: [...college.courses, course] }
-          : college
-      )
-    );
+  const addCourse = async (collegeName: string, course: Course) => {
+    try {
+      const collegeId = findCollegeId(apiColleges, collegeName);
+      if (collegeId) {
+        await coursesAPI.createCourse(collegeId, { name: course.name });
+        await refreshData();
+      }
+    } catch (error) {
+      console.error("Error adding course:", error);
+      throw error;
+    }
   };
 
-  const updateCourse = (collegeName: string, courseName: string, updatedCourse: Course) => {
-    setColleges((prev) =>
-      prev.map((college) =>
-        college.name === collegeName
-          ? {
-              ...college,
-              courses: college.courses.map((course) =>
-                course.name === courseName ? updatedCourse : course
-              ),
-            }
-          : college
-      )
-    );
+  const updateCourse = async (collegeName: string, courseName: string, updatedCourse: Course) => {
+    try {
+      const college = apiColleges.find((c: any) => c.name === collegeName);
+      const courseId = findCourseId(college, courseName);
+      if (courseId) {
+        await coursesAPI.updateCourse(courseId, { name: updatedCourse.name });
+        await refreshData();
+      }
+    } catch (error) {
+      console.error("Error updating course:", error);
+      throw error;
+    }
   };
 
-  const deleteCourse = (collegeName: string, courseName: string) => {
-    setColleges((prev) =>
-      prev.map((college) =>
-        college.name === collegeName
-          ? {
-              ...college,
-              courses: college.courses.filter((course) => course.name !== courseName),
-            }
-          : college
-      )
-    );
+  const deleteCourse = async (collegeName: string, courseName: string) => {
+    try {
+      const college = apiColleges.find((c: any) => c.name === collegeName);
+      const courseId = findCourseId(college, courseName);
+      if (courseId) {
+        await coursesAPI.deleteCourse(courseId);
+        await refreshData();
+      }
+    } catch (error) {
+      console.error("Error deleting course:", error);
+      throw error;
+    }
   };
 
-  const addSemester = (collegeName: string, courseName: string, semester: SemesterTopic) => {
-    setColleges((prev) =>
-      prev.map((college) =>
-        college.name === collegeName
-          ? {
-              ...college,
-              courses: college.courses.map((course) =>
-                course.name === courseName
-                  ? { ...course, semesters: [...course.semesters, semester] }
-                  : course
-              ),
-            }
-          : college
-      )
-    );
+  const addSemester = async (collegeName: string, courseName: string, semester: SemesterTopic) => {
+    try {
+      const college = apiColleges.find((c: any) => c.name === collegeName);
+      const courseId = findCourseId(college, courseName);
+      if (courseId) {
+        await semestersAPI.createSemester(courseId, {
+          semester: semester.semester,
+          topics: semester.topics,
+        });
+        await refreshData();
+      }
+    } catch (error) {
+      console.error("Error adding semester:", error);
+      throw error;
+    }
   };
 
-  const updateSemester = (
+  const updateSemester = async (
     collegeName: string,
     courseName: string,
     semesterNumber: number,
     updatedSemester: SemesterTopic
   ) => {
-    setColleges((prev) =>
-      prev.map((college) =>
-        college.name === collegeName
-          ? {
-              ...college,
-              courses: college.courses.map((course) =>
-                course.name === courseName
-                  ? {
-                      ...course,
-                      semesters: course.semesters.map((sem) =>
-                        sem.semester === semesterNumber ? updatedSemester : sem
-                      ),
-                    }
-                  : course
-              ),
-            }
-          : college
-      )
-    );
+    try {
+      const college = apiColleges.find((c: any) => c.name === collegeName);
+      const course = college?.courses?.find((c: any) => c.name === courseName);
+      const semester = course?.semesters?.find((s: any) => s.semester === semesterNumber);
+      if (semester?.id) {
+        await semestersAPI.updateSemester(semester.id, {
+          semester: updatedSemester.semester,
+          topics: updatedSemester.topics,
+        });
+        await refreshData();
+      }
+    } catch (error) {
+      console.error("Error updating semester:", error);
+      throw error;
+    }
   };
 
-  const deleteSemester = (collegeName: string, courseName: string, semesterNumber: number) => {
-    setColleges((prev) =>
-      prev.map((college) =>
-        college.name === collegeName
-          ? {
-              ...college,
-              courses: college.courses.map((course) =>
-                course.name === courseName
-                  ? {
-                      ...course,
-                      semesters: course.semesters.filter((sem) => sem.semester !== semesterNumber),
-                    }
-                  : course
-              ),
-            }
-          : college
-      )
-    );
+  const deleteSemester = async (collegeName: string, courseName: string, semesterNumber: number) => {
+    try {
+      const college = apiColleges.find((c: any) => c.name === collegeName);
+      const course = college?.courses?.find((c: any) => c.name === courseName);
+      const semester = course?.semesters?.find((s: any) => s.semester === semesterNumber);
+      if (semester?.id) {
+        await semestersAPI.deleteSemester(semester.id);
+        await refreshData();
+      }
+    } catch (error) {
+      console.error("Error deleting semester:", error);
+      throw error;
+    }
   };
 
-  const resetData = () => {
-    setColleges(initialCollegesData);
-    localStorage.removeItem(STORAGE_KEY);
+  const resetData = async () => {
+    // Reset data by reloading from API
+    await refreshData();
   };
 
   return (
     <CollegesContext.Provider
       value={{
         colleges,
+        isLoading,
         addCollege,
         updateCollege,
         deleteCollege,
@@ -188,6 +234,7 @@ export const CollegesProvider = ({ children }: { children: ReactNode }) => {
         updateSemester,
         deleteSemester,
         resetData,
+        refreshData,
       }}
     >
       {children}
@@ -202,4 +249,3 @@ export const useColleges = () => {
   }
   return context;
 };
-

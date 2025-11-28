@@ -1,5 +1,7 @@
-import { GraduationCap, Search } from "lucide-react";
+import { Search } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
+import logo from "@/logo/logo.svg";
 
 interface HeaderProps {
   searchQuery: string;
@@ -13,31 +15,40 @@ export const Header = ({ searchQuery, onSearchChange }: HeaderProps) => {
         <div className="flex items-center justify-between h-14 sm:h-16 md:h-20 gap-2 sm:gap-3 md:gap-4">
           {/* Logo and Brand */}
           <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0 min-w-0">
-            <a href="/" className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-xl gradient-primary flex items-center justify-center shadow-magenta flex-shrink-0">
-                <GraduationCap className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-white" />
-              </div>
+            <Link to="/" className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+              <img 
+                src={logo} 
+                alt="FACEPrep Campus Logo" 
+                className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 flex-shrink-0 object-contain"
+              />
               <div className="min-w-0 hidden sm:block">
                 <h1 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent whitespace-nowrap">
                   FACEPrep Campus
                 </h1>
                 <p className="text-xs text-muted-foreground hidden md:block">Explore Your Curriculum</p>
               </div>
-            </a>
+            </Link>
           </div>
           
           {/* Right Side - Navigation and Search */}
           <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3 lg:gap-4 flex-1 justify-end min-w-0">
             {/* Navigation Links */}
             <nav className="hidden lg:flex items-center gap-4 xl:gap-6 flex-shrink-0">
-              <a
-                href="/colleges"
+              <Link
+                to="/colleges"
                 className="text-sm font-medium hover:text-primary transition-colors whitespace-nowrap"
               >
                 Colleges
-              </a>
+              </Link>
               <a
                 href="#contact"
+                onClick={(e) => {
+                  e.preventDefault();
+                  const contactElement = document.getElementById("contact");
+                  if (contactElement) {
+                    contactElement.scrollIntoView({ behavior: "smooth" });
+                  }
+                }}
                 className="text-sm font-medium hover:text-primary transition-colors whitespace-nowrap"
               >
                 Contact

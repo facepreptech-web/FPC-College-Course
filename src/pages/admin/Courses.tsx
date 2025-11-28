@@ -68,11 +68,11 @@ const Courses = () => {
   const allCourses = useMemo(
     () =>
       colleges.flatMap((college) =>
-        college.courses.map((course) => ({
-          ...course,
-          collegeName: college.name,
-          collegeLocation: college.location,
-        }))
+    college.courses.map((course) => ({
+      ...course,
+      collegeName: college.name,
+      collegeLocation: college.location,
+    }))
       ),
     [colleges]
   );
@@ -80,12 +80,12 @@ const Courses = () => {
   const filteredCourses = useMemo(
     () =>
       allCourses.filter((course) => {
-        const matchesSearch =
-          course.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          course.collegeName.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesCollege =
-          selectedCollege === "all" || course.collegeName === selectedCollege;
-        return matchesSearch && matchesCollege;
+    const matchesSearch =
+      course.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      course.collegeName.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCollege =
+      selectedCollege === "all" || course.collegeName === selectedCollege;
+    return matchesSearch && matchesCollege;
       }),
     [allCourses, searchQuery, selectedCollege]
   );
@@ -107,7 +107,7 @@ const Courses = () => {
     setFormData({ name: "", collegeName: "" });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name.trim() || !formData.collegeName) {
       toast({
@@ -121,12 +121,35 @@ const Courses = () => {
     const college = colleges.find((c) => c.name === formData.collegeName);
     if (!college) return;
 
-    if (editingCourse) {
-      // Check if name changed and conflicts with existing
-      if (editingCourse.name !== formData.name.trim()) {
-        const nameExists = college.courses.some(
-          (c) => c.name === formData.name.trim() && c.name !== editingCourse.name
-        );
+    try {
+      if (editingCourse) {
+        // Check if name changed and conflicts with existing
+        if (editingCourse.name !== formData.name.trim()) {
+          const nameExists = college.courses.some(
+            (c) => c.name === formData.name.trim() && c.name !== editingCourse.name
+          );
+          if (nameExists) {
+            toast({
+              title: "Error",
+              description: "A course with this name already exists in this college",
+              variant: "destructive",
+            });
+            return;
+          }
+        }
+
+        await updateCourse(editingCourse.collegeName, editingCourse.name, {
+          ...editingCourse,
+          name: formData.name.trim(),
+          semesters: editingCourse.semesters,
+        });
+        toast({
+          title: "Success",
+          description: "Course updated successfully",
+        });
+      } else {
+        // Check if course already exists
+        const nameExists = college.courses.some((c) => c.name === formData.name.trim());
         if (nameExists) {
           toast({
             title: "Error",
@@ -135,39 +158,24 @@ const Courses = () => {
           });
           return;
         }
-      }
 
-      updateCourse(editingCourse.collegeName, editingCourse.name, {
-        ...editingCourse,
-        name: formData.name.trim(),
-        semesters: editingCourse.semesters,
-      });
-      toast({
-        title: "Success",
-        description: "Course updated successfully",
-      });
-    } else {
-      // Check if course already exists
-      const nameExists = college.courses.some((c) => c.name === formData.name.trim());
-      if (nameExists) {
-        toast({
-          title: "Error",
-          description: "A course with this name already exists in this college",
-          variant: "destructive",
+        await addCourse(formData.collegeName, {
+          name: formData.name.trim(),
+          semesters: [],
         });
-        return;
+        toast({
+          title: "Success",
+          description: "Course added successfully",
+        });
       }
-
-      addCourse(formData.collegeName, {
-        name: formData.name.trim(),
-        semesters: [],
-      });
+      handleCloseDialog();
+    } catch (error) {
       toast({
-        title: "Success",
-        description: "Course added successfully",
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to save course",
+        variant: "destructive",
       });
     }
-    handleCloseDialog();
   };
 
   const handleOpenSemesterDialog = (course: CourseWithCollege, semester?: SemesterTopic) => {
@@ -190,7 +198,7 @@ const Courses = () => {
     setSemesterFormData({ semester: 1, topics: "" });
   };
 
-  const handleSemesterSubmit = (e: React.FormEvent) => {
+  const handleSemesterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!semesterFormData.topics.trim()) {
       toast({
@@ -210,32 +218,40 @@ const Courses = () => {
       return;
     }
 
-    const semesterData: SemesterTopic = {
-      semester: semesterFormData.semester,
-      topics: semesterFormData.topics.trim(),
-    };
+    try {
+      const semesterData: SemesterTopic = {
+        semester: semesterFormData.semester,
+        topics: semesterFormData.topics.trim(),
+      };
 
-    if (editingSemester.semester) {
-      // Update existing semester
-      updateSemester(
-        editingSemester.course.collegeName,
-        editingSemester.course.name,
-        editingSemester.semester.semester,
-        semesterData
-      );
+      if (editingSemester.semester) {
+        // Update existing semester
+        await updateSemester(
+          editingSemester.course.collegeName,
+          editingSemester.course.name,
+          editingSemester.semester.semester,
+          semesterData
+        );
+        toast({
+          title: "Success",
+          description: "Semester updated successfully",
+        });
+      } else {
+        // Add new semester
+        await addSemester(editingSemester.course.collegeName, editingSemester.course.name, semesterData);
+        toast({
+          title: "Success",
+          description: "Semester added successfully",
+        });
+      }
+      handleCloseSemesterDialog();
+    } catch (error) {
       toast({
-        title: "Success",
-        description: "Semester updated successfully",
-      });
-    } else {
-      // Add new semester
-      addSemester(editingSemester.course.collegeName, editingSemester.course.name, semesterData);
-      toast({
-        title: "Success",
-        description: "Semester added successfully",
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to save semester",
+        variant: "destructive",
       });
     }
-    handleCloseSemesterDialog();
   };
 
   const handleDeleteClick = (collegeName: string, courseName: string) => {
@@ -243,15 +259,23 @@ const Courses = () => {
     setIsDeleteDialogOpen(true);
   };
 
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = async () => {
     if (deletingCourse) {
-      deleteCourse(deletingCourse.collegeName, deletingCourse.courseName);
-      toast({
-        title: "Success",
-        description: "Course deleted successfully",
-      });
-      setIsDeleteDialogOpen(false);
-      setDeletingCourse(null);
+      try {
+        await deleteCourse(deletingCourse.collegeName, deletingCourse.courseName);
+        toast({
+          title: "Success",
+          description: "Course deleted successfully",
+        });
+        setIsDeleteDialogOpen(false);
+        setDeletingCourse(null);
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: error instanceof Error ? error.message : "Failed to delete course",
+          variant: "destructive",
+        });
+      }
     }
   };
 
@@ -260,19 +284,27 @@ const Courses = () => {
     setIsDeleteDialogOpen(true);
   };
 
-  const handleDeleteSemesterConfirm = () => {
+  const handleDeleteSemesterConfirm = async () => {
     if (deletingSemester) {
-      deleteSemester(
-        deletingSemester.collegeName,
-        deletingSemester.courseName,
-        deletingSemester.semesterNumber
-      );
-      toast({
-        title: "Success",
-        description: "Semester deleted successfully",
-      });
-      setIsDeleteDialogOpen(false);
-      setDeletingSemester(null);
+      try {
+        await deleteSemester(
+          deletingSemester.collegeName,
+          deletingSemester.courseName,
+          deletingSemester.semesterNumber
+        );
+        toast({
+          title: "Success",
+          description: "Semester deleted successfully",
+        });
+        setIsDeleteDialogOpen(false);
+        setDeletingSemester(null);
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: error instanceof Error ? error.message : "Failed to delete semester",
+          variant: "destructive",
+        });
+      }
     }
   };
 
@@ -291,9 +323,9 @@ const Courses = () => {
           onClick={() => handleOpenDialog()}
           className="gradient-primary text-white hover:opacity-90"
         >
-          <Plus className="w-4 h-4 mr-2" />
-          Add Course
-        </Button>
+              <Plus className="w-4 h-4 mr-2" />
+              Add Course
+            </Button>
       </div>
 
       <Card className="border-2">
@@ -340,28 +372,28 @@ const Courses = () => {
                   filteredCourses.map((course, index) => (
                     <>
                       <TableRow key={`${course.collegeName}-${course.name}-${index}`} className="hover:bg-muted/50">
-                        <TableCell className="font-medium">
-                          <div className="flex items-center gap-2">
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-2">
                             <div className="w-8 h-8 rounded-lg gradient-secondary flex items-center justify-center flex-shrink-0">
                               <BookOpen className="w-4 h-4 text-white" />
                             </div>
                             <span>{course.name}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Building2 className="w-4 h-4 text-muted-foreground" />
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Building2 className="w-4 h-4 text-muted-foreground" />
                             <span>{course.collegeName}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>{course.collegeLocation}</TableCell>
-                        <TableCell>
+                        </div>
+                      </TableCell>
+                      <TableCell>{course.collegeLocation}</TableCell>
+                      <TableCell>
                           <Badge variant="secondary" className="gradient-accent text-white">
                             {course.semesters.length} {course.semesters.length === 1 ? "semester" : "semesters"}
                           </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex items-center justify-end gap-2">
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-2">
                             <Button
                               variant="ghost"
                               size="icon"
@@ -380,19 +412,19 @@ const Courses = () => {
                               onClick={() => handleOpenDialog(course)}
                               className="hover:bg-primary/10 hover:text-primary"
                             >
-                              <Edit className="w-4 h-4" />
-                            </Button>
+                            <Edit className="w-4 h-4" />
+                          </Button>
                             <Button
                               variant="ghost"
                               size="icon"
                               onClick={() => handleDeleteClick(course.collegeName, course.name)}
                               className="hover:bg-destructive/10 hover:text-destructive"
                             >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
                       {expandedCourse === `${course.collegeName}-${course.name}` && (
                         <TableRow>
                           <TableCell colSpan={5} className="bg-muted/30">

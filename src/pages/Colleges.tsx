@@ -164,16 +164,16 @@ const Colleges = () => {
                     </div>
                   ) : (
                     <>
-                      <p className="text-muted-foreground text-lg mb-4">
-                        No colleges found matching your criteria
-                      </p>
-                      {hasActiveFilters && (
-                        <button
-                          onClick={handleClearFilters}
-                          className="text-primary hover:underline text-sm font-medium"
-                        >
-                          Clear all filters
-                        </button>
+                  <p className="text-muted-foreground text-lg mb-4">
+                    No colleges found matching your criteria
+                  </p>
+                  {hasActiveFilters && (
+                    <button
+                      onClick={handleClearFilters}
+                      className="text-primary hover:underline text-sm font-medium"
+                    >
+                      Clear all filters
+                    </button>
                       )}
                     </>
                   )}

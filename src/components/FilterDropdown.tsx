@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useState, useMemo } from "react";
-import { collegesData, College } from "@/data/collegesData";
+import { College } from "@/data/collegesData";
 
 interface FilterDropdownProps {
   colleges: string[];
@@ -18,7 +18,7 @@ interface FilterDropdownProps {
   onLocationToggle?: (location: string) => void;
   onClearFilters: () => void;
   hasActiveFilters?: boolean;
-  collegesData?: College[];
+  collegesData: College[];
 }
 
 export const FilterDropdown = ({
@@ -33,7 +33,7 @@ export const FilterDropdown = ({
   onLocationToggle,
   onClearFilters,
   hasActiveFilters: externalHasActiveFilters,
-  collegesData: allCollegesData = collegesData,
+  collegesData: allCollegesData,
 }: FilterDropdownProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [collegeSearch, setCollegeSearch] = useState("");
