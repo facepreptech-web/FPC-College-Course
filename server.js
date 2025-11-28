@@ -27,7 +27,7 @@ const dbConfig = {
   host: process.env.DB_HOST || 'localhost',
   database: process.env.DB_NAME || 'u461595815_fpc',
   user: process.env.DB_USER || 'u461595815_fpcadmin',
-  password: process.env.DB_PASS || 'f7McCB4#6IE!',
+  password: process.env.DB_PASS || 'FacePrepCampus@123',
   port: process.env.DB_PORT || 3306,
   waitForConnections: true,
   connectionLimit: 10,

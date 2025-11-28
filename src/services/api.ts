@@ -1,10 +1,10 @@
 // Backend API URL - Uses the same server.js that serves the frontend
-// In production, API is on the same domain, so use relative URLs
+// In production, API is at /api (PHP backend in php/api/ folder)
 // In development, server.js runs on port 3000, Vite dev server on 8080
 const API_BASE_URL = import.meta.env.VITE_API_URL || 
   (import.meta.env.DEV 
     ? 'http://localhost:3000'  // Dev: Vite on 8080, server.js on 3000
-    : '');  // Production: Same origin (server.js serves both frontend and API)
+    : '/api');  // Production: Use /api path (PHP backend or Node.js API)
 
 export interface College {
   id?: number;
